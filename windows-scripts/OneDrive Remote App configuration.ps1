@@ -5,7 +5,7 @@
 
 #description: Toggle background launch of Microsoft OneDrive for Azure Virtual Desktop RemoteApp sessions
 #execution mode: Individual
-#tags: Nerdio, Microsoft, Apps install
+#tags: CSN, Microsoft, Golden Image, Remote Apps, OneDrive
 <#variables:
 {
   "OneDriveBackgroundLaunch": {
@@ -38,7 +38,7 @@ if (-not (Test-Path $registryPathTS)) {
 switch ($OneDriveBackgroundLaunch) {
 
   'Enable' {
-    Write‑Host "Enabling OneDrive background launch for RemoteApp sessions …"
+    Write-Host "Enabling OneDrive background launch for RemoteApp sessions …"
 
     # 1. Enhanced shell experience for RemoteApp
     New-ItemProperty -Path $registryPathTS `
@@ -56,7 +56,7 @@ switch ($OneDriveBackgroundLaunch) {
   }
 
   'Disable' {
-    Write‑Host "Disabling OneDrive background launch for RemoteApp sessions …"
+    Write-Host "Disabling OneDrive background launch for RemoteApp sessions …"
 
     # Remove the RemoteApp shell‑experience key (if present)
     if (Test-Path "$registryPathTS\UseShellAppRuntimeRemoteApp") {
@@ -70,4 +70,4 @@ switch ($OneDriveBackgroundLaunch) {
   }
 }
 
-Write‑Host "Completed OneDrive background‑launch configuration: $OneDriveBackgroundLaunch"
+Write-Host "Completed OneDrive background-launch configuration: $OneDriveBackgroundLaunch"
