@@ -1,8 +1,11 @@
 <#
   Author      : Cristian Schmitt Nieto
-  Description : Hide or unhide drives in File Explorer by managing the NoDrives policy.
-  Execution   : Individual
-  Tags        : CSN, Windows Script, Explorer, Drive Visibility
+  Source      : https://learn.microsoft.com/en-us/troubleshoot/windows-client/group-policy/using-group-policy-objects-hide-specified-drives
+#>
+
+#description : Hide or unhide drives in File Explorer by managing the NoDrives policy.
+#execution mode: IndividualWithRestart
+#tags: CSN, Windows Script, Golden Image, Explorer, Drive Visibility
 
 <#variables:
 {
@@ -19,6 +22,7 @@
   }
 }
 #>
+
 
 param(
   [ComponentModel.DisplayName('Action')]
