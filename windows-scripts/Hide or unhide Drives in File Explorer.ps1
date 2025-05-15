@@ -12,7 +12,7 @@
   "Action": {
     "optionsSet": [
       { "label": "Hide specified drives",     "value": "Hide"   },
-      { "label": "Remove drive hiding entry", "value": "Remove" }
+      { "label": "Unhide all drives", "value": "Unhide" }
     ]
   },
   "DrivesToHide": {
@@ -27,7 +27,7 @@
 param(
   [ComponentModel.DisplayName('Action')]
   [Parameter(Mandatory)]
-  [ValidateSet('Hide','Remove')]
+  [ValidateSet('Hide','Unhide')]
   [string]$Action = 'Hide',
 
   [ComponentModel.DisplayName('Drives to hide')]
@@ -42,7 +42,7 @@ if (-not (Test-Path $regPath)) {
   New-Item -Path $regPath -Force | Out-Null
 }
 
-if ($Action -eq 'Remove') {
+if ($Action -eq 'Unhide') {
   if (Get-ItemProperty -Path $regPath -Name 'NoDrives' -ErrorAction SilentlyContinue) {
     Remove-ItemProperty -Path $regPath -Name 'NoDrives' -ErrorAction Stop
     Write-Host "Removed NoDrives entry; all drives will be visible."
