@@ -30,7 +30,7 @@ param(
   [ValidateSet('Hide','Unhide')]
   [string]$Action = 'Hide',
 
-  [ComponentModel.DisplayName('Drives to hide')]
+  [ComponentModel.DisplayName('Drives to hide (Only use if Hide Option is selected)')]
   [Parameter()]
   [string]$DrivesToHide = ''
 )
