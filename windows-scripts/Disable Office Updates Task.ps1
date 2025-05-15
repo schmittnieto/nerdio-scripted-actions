@@ -3,22 +3,25 @@
   Source      : https://learn.microsoft.com/en-us/microsoft-365/troubleshoot/updates/office-feature-updates-task-faq
 #>
 
-#description : Enable or disable the built-in "Office Feature Updates" scheduled task to prevent performance issues on multi-session hosts.
-#execution mode: IndividualWithRestart
-#tags: CSN, Windows Script, Golden Image, Scheduled Task, OfficeUpdates
+#description: Toggle the built-in "Office Feature Updates" scheduled task to avoid performance issues on multi-session hosts.
+#execution mode: Individual
+#tags: CSN, Microsoft, Golden Image, Scheduled Task, OfficeUpdates
 
 <#variables:
 {
   "Action": {
-    "optionsSet": [
-      { "label": "Enable Office Update Task",  "value": "Enable"  },
-      { "label": "Disable Office Update Task", "value": "Disable" }
+    "Description": "Enable or disable the Office Feature Updates scheduled task.",
+    "DisplayName": "Office Update Task Action",
+    "IsRequired": true,
+    "OptionsSet": [
+      { "Label": "Enable",  "Value": "Enable"  },
+      { "Label": "Disable", "Value": "Disable" }
     ]
   }
 }
 #>
 
-param(
+param (
   [Parameter(Mandatory)]
   [ValidateSet("Enable","Disable")]
   [string]$Action
@@ -27,21 +30,28 @@ param(
 $TaskName = 'Office Feature Updates'
 $TaskPath = '\Microsoft\Office\'
 
-try {
-    $task = Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -ErrorAction Stop
-}
-catch {
+Write-Host "Starting Office Update Task configuration: $Action..."
+
+# Attempt to retrieve the task
+$task = Get-ScheduledTask -TaskName $TaskName -TaskPath $TaskPath -ErrorAction SilentlyContinue
+
+if (-not $task) {
     Write-Error "Scheduled task '$TaskPath$TaskName' not found."
     exit 1
 }
 
-if ($Action -eq 'Enable') {
-    Write-Host "Enabling Office Feature Updates task..."
+switch ($Action) {
+  'Enable' {
+    Write-Host "Enabling scheduled task '$TaskPath$TaskName'..."
     Enable-ScheduledTask -InputObject $task
     Write-Host "Task enabled."
-}
-else {
-    Write-Host "Disabling Office Feature Updates task..."
+  }
+
+  'Disable' {
+    Write-Host "Disabling scheduled task '$TaskPath$TaskName'..."
     Disable-ScheduledTask -InputObject $task
     Write-Host "Task disabled."
+  }
 }
+
+Write-Host "Completed Office Update Task configuration: $Action"
