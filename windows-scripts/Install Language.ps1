@@ -4,7 +4,7 @@
 #>
 
 #description: Install selected Windows language packs and optionally set the default UI language.
-#execution: IndividualWithRestart
+#execution mode: IndividualWithRestart
 #tags: CSN, Windows Script, Golden Image, Language Packs
 
 <#variables:
