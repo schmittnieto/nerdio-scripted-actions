@@ -60,7 +60,7 @@
     "DisplayName": "Default UI language",
     "IsRequired": false,
     "OptionsSet": [
-      { "Label": "— none —",                            "Value": ""         },
+      { "Label": "None",                            "Value": ""         },
       { "Label": "Arabic (Saudi Arabia)",               "Value": "ar-SA"     },
       { "Label": "Bulgarian (Bulgaria)",                "Value": "bg-BG"     },
       { "Label": "Chinese (Simplified, China)",         "Value": "zh-CN"     },
