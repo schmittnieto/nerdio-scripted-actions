@@ -6,7 +6,6 @@
 #description: (DOES NOT WORK WITH W11 24H2) Install selected Windows language packs and optionally set the default UI language.
 #execution mode: IndividualWithRestart
 #tags: CSN, Windows Script, Golden Image, Language Packs
-#Requires   : -RunAsAdministrator
 
 <#variables:
 {
