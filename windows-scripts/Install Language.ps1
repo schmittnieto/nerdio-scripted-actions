@@ -1,10 +1,11 @@
 <#
   Author      : Cristian Schmitt Nieto (addapted from Stefan Dingemanse)
-  Description : Install selected Windows language packs and optionally set the default UI language.
   Source      : https://www.stefandingemanse.com/2022/08/27/install-language-packs-on-windows-10-11-the-easy-way
-  Execution   : IndividualWithRestart
-  Tags        : CSN, Windows Script, Golden Image, Language Packs
-  #Requires   : -RunAsAdministrator
+#>
+
+#description: Install selected Windows language packs and optionally set the default UI language.
+#execution: IndividualWithRestart
+#tags: CSN, Windows Script, Golden Image, Language Packs
 
 <#variables:
 {
