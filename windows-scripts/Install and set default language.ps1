@@ -3,7 +3,7 @@
   Source      : https://www.stefandingemanse.com/2022/08/27/install-language-packs-on-windows-10-11-the-easy-way
 #>
 
-#description: (DOES NOT WORK WITH W11 24H2) Install selected Windows language packs and optionally set the default UI language.
+#description: Install selected Windows language packs and optionally set the default UI language.
 #execution mode: IndividualWithRestart
 #tags: CSN, Windows Script, Golden Image, Language Packs
 
@@ -115,46 +115,107 @@ param(
   [string]$DefaultLanguage
 )
 
-# Prevent running on Windows 11 24H2
+# --- Obtain OS version ---
 $osInfo = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
-if ($osInfo.DisplayVersion -eq '24H2') {
-    Write-Error "This script is not supported on Windows 11 24H2. Exiting."
-    exit 1
-}
+$version = $osInfo.DisplayVersion
 
-Write-Host "Starting language pack installation..."
+if ($version -eq '24H2') {
+    Write-Host "Detected Windows 11 24H2 – applying 24H2-specific logic..."
 
-# Disable cleanup task to avoid conflicts
-if (Get-ScheduledTask -TaskPath "\Microsoft\Windows\AppxDeploymentClient\" -TaskName "Pre-staged app cleanup" -ErrorAction SilentlyContinue) {
-    Disable-ScheduledTask -TaskPath "\Microsoft\Windows\AppxDeploymentClient\" -TaskName "Pre-staged app cleanup"
-    Write-Host "Disabled Pre-staged app cleanup task."
-}
-
-$installed = (Get-InstalledLanguage).LanguageTag
-
-foreach ($lang in $LanguagePacks) {
-    if ($installed -contains $lang) {
-        Write-Host "Language pack '$lang' already installed."
+    Write-Host "Starting language pack installation..."
+    # Disable conflicting tasks
+    if (Get-ScheduledTask -TaskName "\Microsoft\Windows\LanguageComponentsInstaller\Installation" -ErrorAction SilentlyContinue) {
+        Disable-ScheduledTask -TaskName "\Microsoft\Windows\LanguageComponentsInstaller\Installation"
     }
-    else {
-        Write-Host "Installing language pack '$lang'..."
-        Install-Language -Language $lang -ErrorAction Stop
-        Write-Host "Installed '$lang'."
+    if (Get-ScheduledTask -TaskName "\Microsoft\Windows\LanguageComponentsInstaller\ReconcileLanguageResources" -ErrorAction SilentlyContinue) {
+        Disable-ScheduledTask -TaskName "\Microsoft\Windows\LanguageComponentsInstaller\ReconcileLanguageResources"
     }
-}
 
-if ($DefaultLanguage) {
-    if ($LanguagePacks -contains $DefaultLanguage) {
-        Write-Host "Setting default UI language to '$DefaultLanguage'..."
-        Set-SystemPreferredUILanguage -Language $DefaultLanguage
-        Set-WinSystemLocale       -SystemLocale  $DefaultLanguage
-        Set-Culture               -CultureInfo   $DefaultLanguage
-        Set-WinUILanguageOverride -Language      $DefaultLanguage
-        Write-Host "Default UI language set to '$DefaultLanguage'."
-    }
-    else {
-        Write-Warning "DefaultLanguage '$DefaultLanguage' not in install list; skipping."
-    }
-}
+    $installed = (Get-InstalledLanguage).LanguageId
 
-Write-Host "Language pack installation complete."
+    foreach ($lang in $LanguagePacks) {
+        if ($installed -contains $lang) {
+            Write-Host "Language pack '$lang' already installed."
+        }
+        else {
+            for ($i = 1; $i -le 5; $i++) {
+                try {
+                    Write-Host "Installing language pack '$lang' (attempt $i)..."
+                    Install-Language -Language $lang -ErrorAction Stop
+                    Write-Host "Installed '$lang'."
+                    break
+                }
+                catch {
+                    Write-Host "Attempt $i failed: $($_.Exception.Message)"
+                    Start-Sleep -Seconds 2
+                }
+            }
+        }
+    }
+
+    if ($DefaultLanguage) {
+        if ($LanguagePacks -contains $DefaultLanguage) {
+            Write-Host "Setting default UI language to '$DefaultLanguage'..."
+            Set-SystemPreferredUILanguage -Language $DefaultLanguage
+            Set-WinSystemLocale       -SystemLocale  $DefaultLanguage
+            Set-Culture               -CultureInfo   $DefaultLanguage
+            Set-WinUILanguageOverride -Language      $DefaultLanguage
+
+            # Also add keyboard layouts for the chosen language
+            $userList = New-WinUserLanguageList -Language $DefaultLanguage
+            $existing = Get-WinUserLanguageList
+            foreach ($u in $existing) { $userList.Add($u.LanguageTag) }
+            Set-WinUserLanguageList -LanguageList $userList -Force
+
+            Write-Host "Default UI language set to '$DefaultLanguage'."
+        }
+        else {
+            Write-Warning "DefaultLanguage '$DefaultLanguage' not in install list; skipping."
+        }
+    }
+
+    # Re-enable tasks
+    Enable-ScheduledTask -TaskName "\Microsoft\Windows\LanguageComponentsInstaller\Installation"
+    Enable-ScheduledTask -TaskName "\Microsoft\Windows\LanguageComponentsInstaller\ReconcileLanguageResources"
+
+    Write-Host "Language pack installation complete on 24H2."
+}
+else {
+    Write-Host "Detected OS version '$version' – applying original logic..."
+
+    Write-Host "Starting language pack installation..."
+    # Disable cleanup task to avoid conflicts
+    if (Get-ScheduledTask -TaskPath "\Microsoft\Windows\AppxDeploymentClient\" -TaskName "Pre-staged app cleanup" -ErrorAction SilentlyContinue) {
+        Disable-ScheduledTask -TaskPath "\Microsoft\Windows\AppxDeploymentClient\" -TaskName "Pre-staged app cleanup"
+        Write-Host "Disabled Pre-staged app cleanup task."
+    }
+
+    $installed = (Get-InstalledLanguage).LanguageId
+
+    foreach ($lang in $LanguagePacks) {
+        if ($installed -contains $lang) {
+            Write-Host "Language pack '$lang' already installed."
+        }
+        else {
+            Write-Host "Installing language pack '$lang'..."
+            Install-Language -Language $lang -ErrorAction Stop
+            Write-Host "Installed '$lang'."
+        }
+    }
+
+    if ($DefaultLanguage) {
+        if ($LanguagePacks -contains $DefaultLanguage) {
+            Write-Host "Setting default UI language to '$DefaultLanguage'..."
+            Set-SystemPreferredUILanguage -Language $DefaultLanguage
+            Set-WinSystemLocale       -SystemLocale  $DefaultLanguage
+            Set-Culture               -CultureInfo   $DefaultLanguage
+            Set-WinUILanguageOverride -Language      $DefaultLanguage
+            Write-Host "Default UI language set to '$DefaultLanguage'."
+        }
+        else {
+            Write-Warning "DefaultLanguage '$DefaultLanguage' not in install list; skipping."
+        }
+    }
+
+    Write-Host "Language pack installation complete on version '$version'."
+}
